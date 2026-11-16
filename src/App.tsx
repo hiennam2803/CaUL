@@ -1,23 +1,32 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { DEF, useSettings } from "./store";
 import { Row, Toggle, Range, Seg, KeyBox } from "./ui";
 
-const cmd = (c: string, a?: Record<string, unknown>) => invoke(c, a).catch(() => {});
+
+const cmd = (c: string, a?: Record<string, unknown>) => invoke(c, a).catch(() => { });
 
 const Grp = ({ t, cls = "", children }: { t: string; cls?: string; children: ReactNode }) => (
   <fieldset className={"grp " + cls}><legend>{t}</legend>{children}</fieldset>
 );
+
 
 const DLG = {
   help: ["Hướng dẫn", "1. Nhấn phím tắt hoặc chọn Chụp cuộn.\n2. Bấm Bắt đầu để chụp tự động.\n3. Nhấn Esc để dừng hoặc hủy."],
   about: ["CaUL 0.1.0", "Chụp màn hình cuộn tự động.\nPhase 01 – giao diện mô phỏng.\nTauri 2 · Rust · React"],
 };
 
+
+
 export default function App() {
   const [s, up] = useSettings();
   const [ex, setEx] = useState(false);
   const [dlg, setDlg] = useState<"" | "help" | "about">("");
+  const oldKey = useRef<string>();
+  useEffect(() => {
+    cmd("set_hotkey", { old: oldKey.current, key: s.startKey });
+    oldKey.current = s.startKey;
+  }, [s.startKey]);
   const toggle = () => { setEx(!ex); cmd("resize_main", { expanded: !ex }); };
 
   return (

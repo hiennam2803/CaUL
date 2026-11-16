@@ -21,7 +21,7 @@ export function KeyBox({ v, on }: { v: string; on: (v: string) => void }) {
     if (MODS.includes(e.key)) return;
     if (e.key !== "Escape") {
       const m = [e.ctrlKey && "Ctrl", e.altKey && "Alt", e.shiftKey && "Shift", e.metaKey && "Meta"].filter(Boolean);
-      on([...m, e.key.length === 1 ? e.key.toUpperCase() : e.key].join("+"));
+      on([...m, e.key === " " ? "Space" : e.key.length === 1 ? e.key.toUpperCase() : e.key].join("+"));
     }
     setRec(false);
   };
