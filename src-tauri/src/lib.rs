@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent,
+    AppHandle, LogicalSize, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
 
 // Phase 01: chỉ mở cửa sổ phủ toàn màn hình (giao diện mô phỏng).
@@ -18,13 +18,31 @@ async fn close_overlay(app: AppHandle) {
     if let Some(w) = app.get_webview_window("overlay") { let _ = w.close(); }
 }
 
+#[tauri::command]
+fn hide_main(app: AppHandle) {
+    if let Some(w) = app.get_webview_window("main") { let _ = w.hide(); }
+}
+
+#[tauri::command]
+fn quit(app: AppHandle) { app.exit(0); }
+
+// Mở rộng / thu gọn cửa sổ chính (cửa sổ không cho kéo, nên bật tạm resizable)
+#[tauri::command]
+fn resize_main(app: AppHandle, expanded: bool) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.set_resizable(true);
+        let _ = w.set_size(LogicalSize::new(560.0, if expanded { 520.0 } else { 300.0 }));
+        let _ = w.set_resizable(false);
+    }
+}
+
 fn show_main(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("main") { let _ = w.show(); let _ = w.unminimize(); let _ = w.set_focus(); }
 }
 
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![open_overlay, close_overlay])
+        .invoke_handler(tauri::generate_handler![open_overlay, close_overlay, hide_main, quit, resize_main])
         .on_window_event(|w, e| {
             // Đóng cửa sổ chính -> thu xuống khay hệ thống
             if let (WindowEvent::CloseRequested { api, .. }, "main") = (e, w.label()) {

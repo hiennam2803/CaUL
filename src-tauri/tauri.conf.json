@@ -1,4 +1,4 @@
 {"$schema":"https://schema.tauri.app/config/2","productName":"CaUL","version":"0.1.0","identifier":"com.caul.app",
 "build":{"beforeDevCommand":"npm run dev","devUrl":"http://localhost:1420","beforeBuildCommand":"npm run build","frontendDist":"../dist"},
-"app":{"windows":[{"label":"main","title":"CaUL","width":760,"height":520,"resizable":false,"center":true}],"security":{"csp":null}},
+"app":{"windows":[{"label":"main","title":"CaUL","width":560,"height":300,"maximizable":false,"resizable":false,"center":true}],"security":{"csp":null}},
 "bundle":{"active":true,"targets":"all","icon":["icons/32x32.png","icons/128x128.png","icons/icon.ico"]}}
