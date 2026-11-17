@@ -20,6 +20,10 @@ export default function Overlay() {
   }, []);
 
   useEffect(() => {
+    invoke("overlay_ready").catch(() => {});
+  }, []);
+
+  useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && st !== "run" && close();
     addEventListener("keydown", k);
     return () => removeEventListener("keydown", k);

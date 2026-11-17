@@ -11,10 +11,22 @@ const Grp = ({ t, cls = "", children }: { t: string; cls?: string; children: Rea
 );
 
 
-const DLG = {
-  help: ["Hướng dẫn", "1. Nhấn phím tắt hoặc chọn Chụp cuộn.\n2. Bấm Bắt đầu để chụp tự động.\n3. Nhấn Esc để dừng hoặc hủy."],
-  about: ["CaUL 0.1.0", "Chụp màn hình cuộn tự động.\nPhase 01 – giao diện mô phỏng.\nTauri 2 · Rust · React"],
-};
+const DLG = (key: string) => ({
+  help: ["Hướng dẫn",
+    `1. Nhấn ${key} hoặc bấm “Chụp cuộn” để mở chế độ chụp.
+2. Kéo chuột chọn vùng nội dung cần cuộn, chừa khoảng trống phía trên hoặc dưới vùng chọn.
+3. Bấm Bắt đầu, CaUL tự cuộn và chụp từng đoạn.
+4. Nhấn Esc để dừng. Ảnh được ghép và lưu vào thư mục đã chọn.
+
+Mẹo: nếu ảnh bị lệch, tăng “Khoảng nghỉ”. Tránh chọn vùng có thanh cố định.
+Đóng: chạy nền ở khay hệ thống. Kết thúc: thoát hẳn.`],
+  about: ["CaUL 0.2.0",
+    `Chụp màn hình cuộn tự động.
+Tự cuộn, chụp từng đoạn và ghép thành một ảnh dài.
+Chạy nền, mở nhanh bằng phím tắt.
+
+Tauri 2 · Rust · React`],
+});
 
 
 
@@ -27,6 +39,10 @@ export default function App() {
     cmd("set_hotkey", { old: oldKey.current, key: s.startKey });
     oldKey.current = s.startKey;
   }, [s.startKey]);
+
+  useEffect(() => {
+    cmd("set_autostart", { on: s.autostart });
+  }, [s.autostart]);
   const toggle = () => { setEx(!ex); cmd("resize_main", { expanded: !ex }); };
 
   return (
@@ -34,7 +50,7 @@ export default function App() {
       <header>
         <div className="logo" />
         <div><b>CaUL</b><small>Chụp màn hình cuộn</small></div>
-        <span className="chip">v0.1.0</span>
+        <span className="chip">v0.2.0</span>
       </header>
 
       <div className="top">
@@ -84,10 +100,10 @@ export default function App() {
 
       {dlg && (
         <div className="mask" onClick={() => setDlg("")}>
-          <div className="dlg" onClick={e => e.stopPropagation()}>
-            <div className="logo big" />
-            <h3>{DLG[dlg][0]}</h3>
-            <p>{DLG[dlg][1]}</p>
+          <div className={"dlg " + dlg} onClick={e => e.stopPropagation()}>
+            {dlg === "about" && <div className="logo big" />}
+            <h3>{DLG(s.startKey)[dlg][0]}</h3>
+            <p>{DLG(s.startKey)[dlg][1]}</p>
             <button className="btn" onClick={() => setDlg("")}>OK</button>
           </div>
         </div>

@@ -9,6 +9,7 @@ use tauri::{AppHandle, Emitter};
 use xcap::Monitor;
 
 pub static STOP: AtomicBool = AtomicBool::new(false);
+pub static CAPTURING: AtomicBool = AtomicBool::new(false);
 
 #[derive(Deserialize)]
 pub struct Region { pub x: u32, pub y: u32, pub w: u32, pub h: u32 }

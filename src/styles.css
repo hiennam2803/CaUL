@@ -64,6 +64,8 @@ header small{color:var(--sub);font-size:12px}
 .mask{position:fixed;inset:0;background:#0006;display:grid;place-items:center;animation:fade .2s}
 .dlg{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:22px 30px;text-align:center;white-space:pre-line;animation:in .25s}
 .dlg h3{margin:4px 0 6px}.dlg p{color:var(--sub);margin-bottom:14px}
+.dlg{max-width:440px;max-height:94vh;overflow:auto}
+.dlg.help p{text-align:left;font-size:12.5px}
 .btn{background:var(--ac);color:var(--on);padding:8px 18px;border-radius:9px;font-weight:700;transition:.15s}
 .btn:hover{filter:brightness(1.07)}.btn:active{transform:scale(.97)}
 /* chế độ chụp cuộn */
