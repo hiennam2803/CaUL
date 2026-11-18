@@ -4,6 +4,7 @@ export const DEF = {
   autostart: false, background: true, tray: true,
   speed: 5, delay: 300, timeout: 30,
   startKey: "Ctrl+Shift+S",
+  clip: true, save: true,
   dir: "~/Pictures/CaUL", fmt: "PNG", quality: 90,
   theme: "system",
 };

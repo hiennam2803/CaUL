@@ -23,6 +23,11 @@ export default function Overlay() {
     invoke("overlay_ready").catch(() => {});
   }, []);
 
+    // Chụp xong thì đóng lớp phủ ngay (lỗi thì giữ lại để đọc)
+  useEffect(() => {
+    if (st === "done") close();
+  }, [st]);
+
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && st !== "run" && close();
     addEventListener("keydown", k);
@@ -61,7 +66,7 @@ export default function Overlay() {
     setN(0); setSt("run");
     invoke("start_capture", {
       region: { x: v(r.x), y: v(r.y), w: v(r.w), h: v(r.h) },
-      opts: { speed: s.speed, delay: s.delay, timeout: s.timeout, dir: s.dir, fmt: s.fmt, quality: s.quality },
+      opts: { speed: s.speed, delay: s.delay, timeout: s.timeout, dir: s.dir, fmt: s.fmt, quality: s.quality, clip: s.clip, save: s.save },
     }).catch(e => { setMsg(String(e)); setSt("err"); });
   };
 

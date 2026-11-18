@@ -66,7 +66,7 @@ async fn start_capture(app: AppHandle, region: capture::Region, opts: capture::O
             .unwrap_or_else(|_| Err("Lỗi nội bộ khi chụp".into()));
         capture::CAPTURING.store(false, Ordering::SeqCst);
         if let Some(w) = a.get_webview_window("overlay") { let _ = w.set_ignore_cursor_events(false); let _ = w.set_focus(); }
-        let res = match r { Ok(p) => (true, p.display().to_string()), Err(e) => (false, e) };
+        let res = match r { Ok(m) => (true, m), Err(e) => (false, e) };
         let _ = a.emit("cap-done", res);
     });
     Ok(())

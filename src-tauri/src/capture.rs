@@ -1,5 +1,5 @@
 use std::{
-    io::BufWriter, path::PathBuf, sync::atomic::{AtomicBool, Ordering}, thread::sleep,
+    borrow::Cow, io::BufWriter, path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, Mutex}, thread::sleep,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use enigo::{Axis, Coordinate, Enigo, Mouse, Settings};
@@ -10,12 +10,13 @@ use xcap::Monitor;
 
 pub static STOP: AtomicBool = AtomicBool::new(false);
 pub static CAPTURING: AtomicBool = AtomicBool::new(false);
+static CLIP: Mutex<Option<arboard::Clipboard>> = Mutex::new(None);
 
 #[derive(Deserialize)]
 pub struct Region { pub x: u32, pub y: u32, pub w: u32, pub h: u32 }
 
 #[derive(Deserialize)]
-pub struct Opts { pub speed: i32, pub delay: u64, pub timeout: u64, pub dir: String, pub fmt: String, pub quality: u8 }
+pub struct Opts { pub speed: i32, pub delay: u64, pub timeout: u64, pub dir: String, pub fmt: String, pub quality: u8, pub clip: bool, pub save: bool }
 
 fn e<T: ToString>(x: T) -> String { x.to_string() }
 
@@ -37,7 +38,7 @@ fn shift(a: &[Vec<u8>], b: &[Vec<u8>]) -> Option<usize> {
     (best.0 / n < 6).then_some(best.1)
 }
 
-fn save(img: RgbaImage, o: &Opts) -> Result<PathBuf, String> {
+fn save(img: &RgbaImage, o: &Opts) -> Result<PathBuf, String> {
     let mut dir = o.dir.clone();
     if let Some(rest) = dir.strip_prefix('~') {
         let home = std::env::var("USERPROFILE").or_else(|_| std::env::var("HOME")).unwrap_or_default();
@@ -50,15 +51,22 @@ fn save(img: RgbaImage, o: &Opts) -> Result<PathBuf, String> {
     if jpg {
         let f = std::fs::File::create(&p).map_err(e)?;
         let enc = JpegEncoder::new_with_quality(BufWriter::new(f), o.quality.clamp(10, 100));
-        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(img).to_rgb8()).write_with_encoder(enc).map_err(e)?;
+        DynamicImage::ImageRgb8(DynamicImage::ImageRgba8(img.clone()).to_rgb8()).write_with_encoder(enc).map_err(e)?;
     } else {
         img.save(&p).map_err(e)?;
     }
     Ok(p)
 }
 
+fn copy_clip(img: &RgbaImage) -> Result<(), String> {
+    let mut g = CLIP.lock().map_err(e)?;
+    if g.is_none() { *g = Some(arboard::Clipboard::new().map_err(e)?); }
+    let data = arboard::ImageData { width: img.width() as usize, height: img.height() as usize, bytes: Cow::Borrowed(img.as_raw()) };
+    g.as_mut().unwrap().set_image(data).map_err(e)
+}
+
 /// Chụp vùng `r`, tự cuộn xuống, ghép các khung và lưu. `origin` là góc trên-trái màn hình chứa vùng chọn.
-pub fn run(app: &AppHandle, origin: (i32, i32), r: Region, o: &Opts) -> Result<PathBuf, String> {
+pub fn run(app: &AppHandle, origin: (i32, i32), r: Region, o: &Opts) -> Result<String, String> {
     let mon = Monitor::from_point(origin.0 + 1, origin.1 + 1).map_err(e)?;
     let mut mouse = Enigo::new(&Settings::default()).map_err(e)?;
     mouse.move_mouse(origin.0 + (r.x + r.w / 2) as i32, origin.1 + (r.y + r.h / 2) as i32, Coordinate::Abs).map_err(e)?;
@@ -98,5 +106,15 @@ pub fn run(app: &AppHandle, origin: (i32, i32), r: Region, o: &Opts) -> Result<P
     let mut out = RgbaImage::new(w, parts.iter().map(|p| p.height()).sum());
     let mut y = 0i64;
     for p in &parts { imageops::replace(&mut out, p, 0, y); y += p.height() as i64; }
-    save(out, o)
+        let (clip, save_file) = (o.clip, o.save || !o.clip);
+    let mut msg = Vec::new();
+    if save_file { msg.push(save(&out, o)?.display().to_string()); }
+    if clip {
+        match copy_clip(&out) {
+            Ok(()) => msg.push("Đã sao chép vào clipboard (Ctrl+V để dán)".to_string()),
+            Err(er) if save_file => msg.push(format!("Không chép được vào clipboard: {er}")),
+            Err(er) => return Err(format!("Không chép được vào clipboard: {er}")),
+        }
+    }
+    Ok(msg.join(" · "))
 }

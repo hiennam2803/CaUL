@@ -19,6 +19,7 @@ tauri-plugin-single-instance = "2"
 xcap = "0.7"
 enigo = "0.3"
 image = "0.25"
+arboard = { version = "3", features = ["wayland-data-control"] }
 
 [profile.dev]
 opt-level = 2

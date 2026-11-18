@@ -84,6 +84,8 @@ export default function App() {
             <Row t="Thu nhỏ xuống khay"><Toggle v={s.tray} on={v => up({ tray: v })} /></Row>
           </Grp>
           <Grp t="Lưu ảnh">
+            <Row t="Sao chép vào clipboard" d="Dán bằng Ctrl+V"><Toggle v={s.clip} on={v => up({ clip: v })} /></Row>
+            <Row t="Lưu thành file"><Toggle v={s.save} on={v => up({ save: v })} /></Row>
             <Row t="Thư mục"><input className="in" value={s.dir} onChange={e => up({ dir: e.target.value })} /></Row>
             <Row t="Định dạng"><Seg v={s.fmt} opts={[["PNG", "PNG"], ["JPG", "JPG"]]} on={v => up({ fmt: v })} /></Row>
             <div className={s.fmt === "JPG" ? "" : "off"}>
